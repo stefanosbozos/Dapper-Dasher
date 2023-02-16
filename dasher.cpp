@@ -10,38 +10,44 @@ int main(){
     const int window_height{380};
 
     InitWindow(window_width, window_height, "Dapper Dasher v1.0");
-
-    // Frames per second set //
-    SetTargetFPS(60);
-
-    //// General Gameplay Variables ////
     
-    // Game Physics //
-    const int gravity{1};
+    // // GAME PHYSICS // //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Gravity in (pixel/s)/s
+    const int gravity{1'000}; // The apostrophe is ignored by the compiler. Is used only to make the number more readable.
 
     // Check if the player is in the air to avoid double jumpingp
     bool isInAir{false};
 
-    // The amount of velocity on the Y axis simulating a jump
-    int player_jump_velocity{-22};
-
-
-    // // PROTOTYPING USE ONLY // //
-    // //// Rectangle Properties ////
-    // // Dimensions //
-    // int rect_width{30};
-    // int rect_height{50};
-
-    // // Initial Position //
-    // int rect_positionX{window_width / 2};
-    // int rect_positionY{window_height - rect_height};
-
+    // The amount of velocity on the Y axis simulating a jump in (pixels/second)
+    int player_jump_velocity{-600};
 
     // Initialize player's Velocity //
     int player_velocity{0};
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    // // GAME RUNTIME AND ANIMATION RELATED VARIABLES // //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Frames per second set
+    SetTargetFPS(60);
+
+    // Initialize Player animation frame in the spritesheet "scarfy.png"
+    int frame{};
+
+    // The amount of time before we update the animation frame
+    // We want to update the animation 12 times per second in order to achieve a smooth running animation.
+    const float update_time{1.0f / 12.0f};
+    float running_time{};
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
     // // // SPRITE INITIALIZATION  // // //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Texture2D, Rectangle and Vector2 are "compount data types", which are a custom data type 
     // created by the raylib library. LoadTecture is a method of the Texture2D class
     Texture2D player = LoadTexture("textures/scarfy.png");
@@ -66,10 +72,18 @@ int main(){
 
     playerPosition.y = window_height - playerRectangle.height; // Place the player at the bottom of the screen on the Y axis.
 
+    
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    // Begin the Gameloop //
-    while(!WindowShouldClose()){
+
+    
+    // GAME LOOP START //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // While the user does not click on the "X" button loop through the below code //
+    while(!WindowShouldClose())
+    {
         
         // Start the frame buffer //
         BeginDrawing();
@@ -77,12 +91,10 @@ int main(){
         // Refresh the frame buffer with a white backgroud //
         ClearBackground(WHITE);
 
-        // // PROTOTYPING USE ONLY // //
-        // // Draw the rectangle on the screen //
-        // DrawRectangle(rect_positionX, rect_positionY, rect_width, rect_height, BLUE);
+        // Delta Time (time since last frame) //
+        float delta_time{GetFrameTime()};
 
-
-        // // // GRAVITY // // //
+        // // // PLAYER GRAVITY // // //
 
         // Check every frame if the player is on the ground
         if(playerPosition.y >= (window_height - playerRectangle.height))
@@ -93,24 +105,57 @@ int main(){
         else
         {
             // Apply Gravity to the player if he is not touching the ground
-            player_velocity += gravity;
+            player_velocity += gravity * delta_time;
             isInAir = true;
         }
 
         // // // PLAYER INPUT // // //
-
+        //////////////////////////////////////////////////////////////////////
         // Jump //
         if(IsKeyDown(KEY_SPACE) && !isInAir)
         {   
             player_velocity += player_jump_velocity;
         }
 
-        // // // PLAYER INPUT END // //
+        /////////////////////////////////////////////////////////////////////
 
 
         // Update the player's velocity by 10 every frame on the Y axis //
-        playerPosition.y += player_velocity;
+        playerPosition.y += player_velocity * delta_time;
 
+
+        // // PLAYER ANIMATION // //
+        //////////////////////////////////////////////////////////////////////
+        // Update player's frame to create animation //
+
+        // ***General formula for updating animation from a spritesheet***
+        // x = frame * width/n
+        // x -> the animation we want to draw
+        // frame -> the frame on the spritesheet
+        // width -> the spritesheet's width
+        // n -> the number of animations on the spritesheet
+
+        // Update running time
+        running_time += delta_time;
+        
+        // Check if running time has surpassed update time
+        if(running_time >= update_time)
+        {
+            running_time = 0.0f;
+
+            playerRectangle.x = frame * playerRectangle.width;
+            frame++; // Go to the next frame
+
+            // Reset the frame to avoid exceeding the spritesheet's width
+            if(frame > 5)
+            {
+                frame = 0;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+
+        
         // Draw the player on the screen //
         DrawTextureRec(player, playerRectangle, playerPosition, WHITE);
 
@@ -118,6 +163,9 @@ int main(){
         EndDrawing();
 
     }
+
+    // // GAME LOOP END // //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Unload the texture that is loaded in the Texture buffer.
     // Everytime in Raylib we load a texture at the start of the program,
