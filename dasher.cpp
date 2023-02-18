@@ -196,19 +196,19 @@ int main(){
                     frame = 0;
                 }
             }
+        }
 
-            // Update the Enemy Nebula Animation
-            if(enemyNebula_runningTime >= enemyNebule_updateTime)
+        // Update the Enemy Nebula Animation
+        if(enemyNebula_runningTime >= enemyNebule_updateTime)
+        {
+            enemyNebula_runningTime = 0.0f;
+
+            enemyNebula_Rectangle.x = enemyNebula_frame * enemyNebula_Rectangle.width;
+            enemyNebula_frame++;
+
+            if(enemyNebula_frame > 7)
             {
-                enemyNebula_runningTime = 0.0f;
-
-                enemyNebula_Rectangle.x = enemyNebula_frame * enemyNebula_Rectangle.width;
-                enemyNebula_frame++;
-
-                if(enemyNebula_frame > 7)
-                {
-                    enemyNebula_frame = 0;
-                }
+                enemyNebula_frame = 0;
             }
         }
 
