@@ -3,6 +3,9 @@
 
 using namespace std;
 
+// // END OF HEADERS AND NAMESPACES // //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /*
     SpriteAnimationData2D is a custom data type to store
     all the data related to the animation of the sprite.
@@ -42,7 +45,7 @@ struct SpriteAnimationData2D
 
     // (float)
     //
-    // The amount of time that the current sprite animation will be displayed on the canvas.
+    // Timer that keeps time of the animation display on the canvas.
     float runningTime;
 
     // (float)
@@ -52,13 +55,13 @@ struct SpriteAnimationData2D
     float updateTime;
 };
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 int main(){
 
     // // MAIN CANVAS INITIALIZATION // //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     const int window_width{512};                                        // Main Canvas width dimensions in pixels
     const int window_height{380};                                       // Main Canvas height dimensions in pixels
     
@@ -69,7 +72,7 @@ int main(){
     
 
     // // GAME PHYSICS & VELOCITIES // //
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const int gravity{1'000};                               // Gravity modifier in pixels per second (The apostrophe is ignored by the compiler. Is used only to make the number more readable.)
 
@@ -84,7 +87,7 @@ int main(){
 
 
     // // // ANIMATION INITIALIZATION  // // //
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // // // PLAYER ANIMATION // // //
     Texture2D playerSpritesheet = LoadTexture("textures/scarfy.png");
@@ -94,10 +97,12 @@ int main(){
         {0.0, 0.0, playerSpritesheet.width/6, playerSpritesheet.height},                                                        // Sprite rectangle dimensions
         {window_width/2 - playerAnimation.spriteRectangle.width/2, window_height - playerAnimation.spriteRectangle.height},     // PosX and PosY on the spritesheet
         {0},                                                                                                                    // Current frame
-        {0.0f},                                                                                                                 // Time that the current frame will be dislayed
+        {0.0f},                                                                                                                 // Timer that keeps time of the animation display
         {1.0f/12.0f}                                                                                                            // Time that the current frame will be changed to the next on the spritesheet
     }; 
     
+
+
     // // // ENEMY ANIMATION // // //
 
     // NEBULA
@@ -106,16 +111,25 @@ int main(){
     // Enemy's nebula sprite animation frame
     SpriteAnimationData2D nebula{
         {0.0, 0.0, nebulaSpritesheet.width/8, nebulaSpritesheet.height/8},      // Rectangle Dimensions
-        {window_width + 300, window_height - nebula.spriteRectangle.height},    // Rectangle posX and posY
+        {window_width, window_height - nebula.spriteRectangle.height/8},        // Rectangle posX and posY
         {0},                                                                    // Current frame of the spritesheet
-        {0.0},                                                                  // The amount of time that the current frame will be displayed on the canvas
+        {0.0},                                                                  // Timer that keeps time of the animation display
+        {1.0f/12.0f}                                                            // The amount of time before we update the animation
+    };
+
+    // Second enemy nebula sprite animation frame
+    SpriteAnimationData2D nebula2{
+        {0.0, 0.0, nebulaSpritesheet.width/8, nebulaSpritesheet.height/8},      // Rectangle Dimensions
+        {window_width + 300, window_height - nebula.spriteRectangle.height/8},  // Rectangle posX and posY
+        {0},                                                                    // Current frame of the spritesheet
+        {0.0},                                                                  // Timer that keeps time of the animation display
         {1.0f/12.0f}                                                            // The amount of time before we update the animation
     };
 
 
     
     // GAME LOOP START //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // While the user does not click on the "X" button loop through the below code //
     while(!WindowShouldClose())
@@ -144,7 +158,7 @@ int main(){
         }
 
         // // // PLAYER INPUT // // //
-        //////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         // Player Jumping
         if(IsKeyDown(KEY_SPACE) && !isInAir)
@@ -152,15 +166,20 @@ int main(){
             player_velocity += player_jump_velocity;
         }
 
-        /////////////////////////////////////////////////////////////////////
+        
 
+        // // POSITION UPDATE // //
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         nebula.position.x += enemyNebula_Velocity * delta_time;                     // Update the enemy nebula position on the X axis
+
+        nebula2.position.x += enemyNebula_Velocity * delta_time;                    // Update the second enemy nebula position on the X axis
 
         playerAnimation.position.y += player_velocity * delta_time;                 // Update the player's velocity by 10 every frame on the Y axis
 
 
+
         // // ANIMATION // //
-        //////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // ***General formula for updating animation from a spritesheet***
         // x = frame * width/n
         // x -> the animation we want to draw
@@ -174,7 +193,6 @@ int main(){
         {
             // Update running time
             playerAnimation.runningTime += delta_time;
-            
 
             //Update the player's animation
             // Check if running time has surpassed update time
@@ -209,10 +227,28 @@ int main(){
             }
         }
 
-        ///////////////////////////////////////////////////////////////////////
+        // Update the second enemy Nebula Animation
+        nebula2.runningTime += delta_time;
+        if(nebula2.runningTime >= nebula2.updateTime)
+        {
+            nebula2.runningTime = 0.0f;
+
+            nebula2.spriteRectangle.x = nebula2.frame * nebula2.spriteRectangle.width;
+            nebula2.frame++;
+
+            if(nebula2.frame > 7)
+            {
+                nebula2.frame = 0;
+            }
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Draw the enemy Nebula
         DrawTextureRec(nebulaSpritesheet, nebula.spriteRectangle, nebula.position, WHITE);
+
+        // Draw the second enemy Nebula
+        DrawTextureRec(nebulaSpritesheet, nebula2.spriteRectangle, nebula2.position, RED);
 
         // Draw the player on the screen
         DrawTextureRec(playerSpritesheet, playerAnimation.spriteRectangle, playerAnimation.position, WHITE);
@@ -223,7 +259,7 @@ int main(){
     }
 
     // // GAME LOOP END // //
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Unload the texture that is loaded in the Texture buffer.
     // Everytime in Raylib we load a texture at the start of the program,
