@@ -84,7 +84,7 @@ int main(){
 
     int player_velocity{0};                                 // Player's vertical velocity (pixels per second)   
 
-    int enemyNebula_Velocity{-600};                         // Enemy's Nebula horizontal velocity in (pixels per second)
+    int enemyNebula_Velocity{-250};                         // Enemy's Nebula horizontal velocity in (pixels per second)
 
 
 
@@ -109,30 +109,27 @@ int main(){
 
     // NEBULA
     Texture2D nebulaSpritesheet = LoadTexture("textures/12_nebula_spritesheet.png"); // Loads the Nebula enemy spritesheet (8x8)
+    
+    int nebula_number = 10;
 
-    // Enemy's nebula sprite animation frame
-    SpriteAnimationData2D nebula{
-        {0.0, 0.0, nebulaSpritesheet.width/8, nebulaSpritesheet.height/8},      // Rectangle Dimensions
-        {window_width, window_height - nebula.spriteRectangle.height},          // Rectangle posX and posY
-        {0},                                                                    // Current frame of the spritesheet
-        {0.0},                                                                  // Timer that keeps time of the animation display
-        {1.0f/12.0f}                                                            // The amount of time before we update the animation
-    };
+    // The array enemies_nebula holds all the nebula animation data.
+    SpriteAnimationData2D enemies_nebula[nebula_number]{};
 
-    // Second enemy nebula sprite animation frame
-    SpriteAnimationData2D nebula2{
-        {0.0, 0.0, nebulaSpritesheet.width/8, nebulaSpritesheet.height/8},      // Rectangle Dimensions
-        {window_width + 300, window_height - nebula.spriteRectangle.height},    // Rectangle posX and posY
-        {0},                                                                    // Current frame of the spritesheet
-        {0.0},                                                                  // Timer that keeps time of the animation display
-        {1.0f/12.0f}                                                            // The amount of time before we update the animation
-    };
+    for(int i=0; i<nebula_number; i++){
+        // Rectangle Dimension (x, y, width, height)
+        enemies_nebula[i].spriteRectangle.x = 0.0f;
+        enemies_nebula[i].spriteRectangle.y = 0.0f;
+        enemies_nebula[i].spriteRectangle.width = nebulaSpritesheet.width/8;
+        enemies_nebula[i].spriteRectangle.height = nebulaSpritesheet.height/8;
 
-    SpriteAnimationData2D enemies_nebula[2]                                     // enemies_nebula Array holds the infomation for
-    {                                                                           // the animation of the nebula type enemies
-        nebula,
-        nebula2
-    };
+        // Rectangle position on the X and Y axis. Every nebula has 300px difference between them in the X axis.
+        enemies_nebula[i].position.x = window_width + (i * 300);
+        enemies_nebula[i].position.y = window_height - enemies_nebula[i].spriteRectangle.height;
+
+        enemies_nebula[i].frame = 0;            //Current frame of the spritesheet
+        enemies_nebula[i].runningTime = 0.0f;   //Timer that keeps time of the animation display
+        enemies_nebula[i].updateTime = 0.0f;    //The amount of time before we update the animation
+    }
 
     
     // GAME LOOP START //
@@ -174,12 +171,14 @@ int main(){
         }
 
         
-
         // // POSITION UPDATE // //
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        enemies_nebula[0].position.x += enemyNebula_Velocity * delta_time;                     // Update the enemy nebula position on the X axis
-
-        enemies_nebula[1].position.x += enemyNebula_Velocity * delta_time;                    // Update the second enemy nebula position on the X axis
+        
+        
+        for(int i=0; i<nebula_number; i++)
+        {
+            enemies_nebula[i].position.x += enemyNebula_Velocity * delta_time;      // Update the nebula enemies position by 250 every frame on the X axis
+        }
 
         playerAnimation.position.y += player_velocity * delta_time;                 // Update the player's velocity by 10 every frame on the Y axis
 
@@ -218,44 +217,30 @@ int main(){
             }
         }
 
-
         // Update the Enemy Nebula Animation
-        enemies_nebula[0].runningTime += delta_time;
-        if(enemies_nebula[0].runningTime >= enemies_nebula[0].updateTime)
+        for(int i=0; i<nebula_number; i++)
         {
-            enemies_nebula[0].runningTime = 0.0f;
-
-            enemies_nebula[0].spriteRectangle.x = enemies_nebula[0].frame * enemies_nebula[0].spriteRectangle.width;
-            enemies_nebula[0].frame++;
-
-            if(enemies_nebula[0].frame > 7)
+            enemies_nebula[i].runningTime += delta_time;
+            if(enemies_nebula[i].runningTime >= enemies_nebula[i].updateTime)
             {
-                enemies_nebula[0].frame = 0;
-            }
-        }
+                enemies_nebula[i].runningTime = 0.0f;
 
-        // Update the second enemy Nebula Animation
-        enemies_nebula[1].runningTime += delta_time;
-        if(enemies_nebula[1].runningTime >= enemies_nebula[1].updateTime)
-        {
-            enemies_nebula[1].runningTime = 0.0f;
+                enemies_nebula[i].spriteRectangle.x = enemies_nebula[i].frame * enemies_nebula[i].spriteRectangle.width;
+                enemies_nebula[i].frame++;
 
-            enemies_nebula[1].spriteRectangle.x = enemies_nebula[1].frame * enemies_nebula[1].spriteRectangle.width;
-            enemies_nebula[1].frame++;
-
-            if(enemies_nebula[1].frame > 7)
-            {
-                enemies_nebula[1].frame = 0;
+                if(enemies_nebula[i].frame > 7)
+                {
+                    enemies_nebula[i].frame = 0;
+                }
             }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         // Draw the enemy Nebula
-        DrawTextureRec(nebulaSpritesheet, enemies_nebula[0].spriteRectangle, enemies_nebula[0].position, WHITE);
-
-        // Draw the second enemy Nebula
-        DrawTextureRec(nebulaSpritesheet, enemies_nebula[1].spriteRectangle, enemies_nebula[1].position, RED);
+        for(int i=0 ; i<nebula_number; i++)
+        {          
+            DrawTextureRec(nebulaSpritesheet, enemies_nebula[i].spriteRectangle, enemies_nebula[i].position, RED);
+        }
 
         // Draw the player on the screen
         DrawTextureRec(playerSpritesheet, playerAnimation.spriteRectangle, playerAnimation.position, WHITE);
