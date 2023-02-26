@@ -55,6 +55,46 @@ struct SpriteAnimationData2D
     float updateTime;
 };
 
+
+//////////////////////////////// FUNCTION DECLARATION ////////////////////////////////////////////////////
+
+// Returns true if the sprite's bottom edge is equal or greater than the game window's Y value,
+// of false if the sprite's bottom edge is less than the Y value of the game window.
+bool IsOnGround(SpriteAnimationData2D spriteData, int window_height)
+{
+    return spriteData.position.y >= (window_height - spriteData.spriteRectangle.height);
+}
+
+
+// Updates the sprite's values in order to update the coordinates on the spritesheet
+// for every frame.
+SpriteAnimationData2D UpdateAnimation(SpriteAnimationData2D spriteData, float deltaTime, int maxFrame)
+{
+    // Update running time
+    spriteData.runningTime += deltaTime;
+
+    //Update the player's animation
+    // Check if running time has surpassed update time
+    if(spriteData.runningTime >= spriteData.updateTime)
+    {
+        spriteData.runningTime = 0.0f;
+
+        spriteData.spriteRectangle.x = spriteData.frame * spriteData.spriteRectangle.width;
+        spriteData.frame++; // Go to the next frame
+            
+        // Reset the frame to avoid exceeding the spritesheet's width reset frame to 0
+        if(spriteData.frame > maxFrame)
+        {
+            spriteData.frame = 0;
+        }
+    }
+
+    // Return the updated values of the sprite's animation
+    return spriteData;
+
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -149,7 +189,7 @@ int main(){
         // // // PLAYER GRAVITY // // //
 
         // Check every frame if the player is on the ground
-        if(playerAnimation.position.y >= (window_height - playerAnimation.spriteRectangle.height))
+        if(IsOnGround(playerAnimation, window_height))
         {
             player_velocity = 0;
             isInAir = false;
@@ -197,42 +237,13 @@ int main(){
         // so the player does not "run" while jumping.
         if(!isInAir)
         {
-            // Update running time
-            playerAnimation.runningTime += delta_time;
-
-            //Update the player's animation
-            // Check if running time has surpassed update time
-            if(playerAnimation.runningTime >= playerAnimation.updateTime)
-            {
-                playerAnimation.runningTime = 0.0f;
-
-                playerAnimation.spriteRectangle.x = playerAnimation.frame * playerAnimation.spriteRectangle.width;
-                playerAnimation.frame++; // Go to the next frame
-            
-                // Reset the frame to avoid exceeding the spritesheet's width
-                if(playerAnimation.frame > 5)
-                {
-                    playerAnimation.frame = 0;
-                }
-            }
+           playerAnimation = UpdateAnimation(playerAnimation, delta_time, 5);
         }
 
         // Update the Enemy Nebula Animation
         for(int i=0; i<nebula_number; i++)
         {
-            enemies_nebula[i].runningTime += delta_time;
-            if(enemies_nebula[i].runningTime >= enemies_nebula[i].updateTime)
-            {
-                enemies_nebula[i].runningTime = 0.0f;
-
-                enemies_nebula[i].spriteRectangle.x = enemies_nebula[i].frame * enemies_nebula[i].spriteRectangle.width;
-                enemies_nebula[i].frame++;
-
-                if(enemies_nebula[i].frame > 7)
-                {
-                    enemies_nebula[i].frame = 0;
-                }
-            }
+            enemies_nebula[i] = UpdateAnimation(enemies_nebula[i], delta_time, 7);
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
