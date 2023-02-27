@@ -171,6 +171,14 @@ int main(){
         enemies_nebula[i].updateTime = 0.0f;    //The amount of time before we update the animation
     }
 
+
+    // // // BACKGROUND ANIMATION // // //
+
+    // FAR BACKGROUND
+    Texture2D backgroundFar = LoadTexture("textures/far-buildings.png");            // Load the far background texture
+
+    float background_Far_1_posX{};                                                  // Initiate the X coordinate of the Far Background to 0
+                                                                                    // This variable is going to be used in order to move the background backwards on the X axis.
     
     // GAME LOOP START //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,6 +193,23 @@ int main(){
 
         float delta_time{GetFrameTime()};                                       // Delta Time (time since last frame)
         
+
+        // // // BACKGROUND SCROLLING // // //
+
+        // Far background
+
+        background_Far_1_posX -= 20 * delta_time;                               // Move the background to the left on the X axis 
+
+        if(background_Far_1_posX <= -backgroundFar.width * 2){
+            background_Far_1_posX = 0.0f;
+        }
+
+        
+        Vector2 background_Far_1_Position{background_Far_1_posX, 0.0};
+        DrawTextureEx(backgroundFar,background_Far_1_Position, 0.0f, 2.0, WHITE);
+
+        Vector2 background_Far_2_Position{background_Far_1_posX + backgroundFar.width * 2, 0.0};
+        DrawTextureEx(backgroundFar, background_Far_2_Position, 0.0f, 2.0, WHITE);
 
         // // // PLAYER GRAVITY // // //
 
@@ -269,6 +294,7 @@ int main(){
     // we need to unload the texture at the end of the program.
     UnloadTexture(playerSpritesheet);
     UnloadTexture(nebulaSpritesheet);
+    UnloadTexture(backgroundFar);
     // Close the window that we have initialized before the program ends //
     CloseWindow();
 
