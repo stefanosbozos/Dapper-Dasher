@@ -172,14 +172,25 @@ int main(){
     }
 
 
-    // // // BACKGROUND ANIMATION // // //
 
-    // FAR BACKGROUND
-    Texture2D backgroundFar = LoadTexture("textures/far-buildings.png");            // Load the far background texture
+    // // // ENVIRONMENT ANIMATION // // //
 
-    float background_Far_1_posX{};                                                  // Initiate the X coordinate of the Far Background to 0
-                                                                                    // This variable is going to be used in order to move the background backwards on the X axis.
-    
+    // BACKGROUND
+    Texture2D background = LoadTexture("textures/far-buildings.png");            // Load the far background texture
+
+    // Initiate the X coordinate of the Far Background to 0
+    // This variable is going to be used in order to move the background backwards on the X axis.
+    float background_1_posX{};
+
+    // MIDGROUND
+    Texture2D midground = LoadTexture("textures/back-buildings.png");
+    float midground_1_posX{};
+
+    // FOREGROUND
+    Texture2D foreground = LoadTexture("textures/foreground.png");
+    float foreground_1_posX{};
+
+
     // GAME LOOP START //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -194,22 +205,49 @@ int main(){
         float delta_time{GetFrameTime()};                                       // Delta Time (time since last frame)
         
 
-        // // // BACKGROUND SCROLLING // // //
+        // // // ENVIRONMENT SIDE SCROLLING // // //
 
-        // Far background
+        // BACKGROUND
 
-        background_Far_1_posX -= 20 * delta_time;                               // Move the background to the left on the X axis 
+        background_1_posX -= 20 * delta_time;                               // Move the background to the left on the X axis 
 
-        if(background_Far_1_posX <= -backgroundFar.width * 2){
-            background_Far_1_posX = 0.0f;
+        if(background_1_posX <= -background.width * 2){
+            background_1_posX = 0.0f;
         }
 
         
-        Vector2 background_Far_1_Position{background_Far_1_posX, 0.0};
-        DrawTextureEx(backgroundFar,background_Far_1_Position, 0.0f, 2.0, WHITE);
+        Vector2 background_1_Position{background_1_posX, 0.0};
+        DrawTextureEx(background,background_1_Position, 0.0f, 2.0, WHITE);
 
-        Vector2 background_Far_2_Position{background_Far_1_posX + backgroundFar.width * 2, 0.0};
-        DrawTextureEx(backgroundFar, background_Far_2_Position, 0.0f, 2.0, WHITE);
+        Vector2 background_2_Position{background_1_posX + background.width * 2, 0.0};
+        DrawTextureEx(background, background_2_Position, 0.0f, 2.0, WHITE);
+
+
+        // MIDGROUND
+        midground_1_posX -= 40 * delta_time;
+
+        if(midground_1_posX <= -midground.width * 2){
+            midground_1_posX = 0.0f;
+        }
+
+        Vector2 midground_1_Position{midground_1_posX, 0.0};
+        DrawTextureEx(midground, midground_1_Position, 0.0f, 2.0, WHITE);
+        Vector2 midground_2_Position{midground_1_posX + midground.width * 2, 0.0};
+        DrawTextureEx(midground, midground_2_Position, 0.0f, 2.0, WHITE);
+
+        // FOREGROUND
+        foreground_1_posX -= 80 * delta_time;
+
+        if(foreground_1_posX <= -foreground.width * 2){
+            foreground_1_posX = 0.0f;
+        }
+
+        Vector2 foreground_1_Position{foreground_1_posX, 0.0};
+        DrawTextureEx(foreground, foreground_1_Position, 0.0f, 2.0, WHITE);
+        Vector2 foreground_2_Position{foreground_1_posX + foreground.width * 2, 0.0};
+        DrawTextureEx(foreground, foreground_2_Position, 0.0f, 2.0, WHITE);
+
+
 
         // // // PLAYER GRAVITY // // //
 
@@ -275,7 +313,7 @@ int main(){
         // Draw the enemy Nebula
         for(int i=0 ; i<nebula_number; i++)
         {          
-            DrawTextureRec(nebulaSpritesheet, enemies_nebula[i].spriteRectangle, enemies_nebula[i].position, RED);
+            DrawTextureRec(nebulaSpritesheet, enemies_nebula[i].spriteRectangle, enemies_nebula[i].position, WHITE);
         }
 
         // Draw the player on the screen
@@ -294,7 +332,9 @@ int main(){
     // we need to unload the texture at the end of the program.
     UnloadTexture(playerSpritesheet);
     UnloadTexture(nebulaSpritesheet);
-    UnloadTexture(backgroundFar);
+    UnloadTexture(background);
+    UnloadTexture(midground);
+    UnloadTexture(foreground);
     // Close the window that we have initialized before the program ends //
     CloseWindow();
 
