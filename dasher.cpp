@@ -150,12 +150,15 @@ int main(){
     // NEBULA
     Texture2D nebulaSpritesheet = LoadTexture("textures/12_nebula_spritesheet.png"); // Loads the Nebula enemy spritesheet (8x8)
     
-    int nebula_number = 10;
+    int nebula_number = GetRandomValue(10,20);
+    int nebula_frequency = GetRandomValue(350,600);
+    //int nebula_counter{nebula_number};
 
     // The array enemies_nebula holds all the nebula animation data.
     SpriteAnimationData2D enemies_nebula[nebula_number]{};
 
     for(int i=0; i<nebula_number; i++){
+
         // Rectangle Dimension (x, y, width, height)
         enemies_nebula[i].spriteRectangle.x = 0.0f;
         enemies_nebula[i].spriteRectangle.y = 0.0f;
@@ -163,7 +166,7 @@ int main(){
         enemies_nebula[i].spriteRectangle.height = nebulaSpritesheet.height/8;
 
         // Rectangle position on the X and Y axis. Every nebula has 300px difference between them in the X axis.
-        enemies_nebula[i].position.x = window_width + (i * 300);
+        enemies_nebula[i].position.x = window_width + (i * 500);
         enemies_nebula[i].position.y = window_height - enemies_nebula[i].spriteRectangle.height;
 
         enemies_nebula[i].frame = 0;            //Current frame of the spritesheet
@@ -171,24 +174,32 @@ int main(){
         enemies_nebula[i].updateTime = 0.0f;    //The amount of time before we update the animation
     }
 
+    // FINISH LINE ?
+
+    float finishLine{ enemies_nebula[nebula_number - 1].position.x};
+
+    // COLLISION DETECTION
+    bool isColliding{};
 
 
     // // // ENVIRONMENT ANIMATION // // //
 
     // BACKGROUND
     Texture2D background = LoadTexture("textures/far-buildings.png");            // Load the far background texture
-
     // Initiate the X coordinate of the Far Background to 0
     // This variable is going to be used in order to move the background backwards on the X axis.
     float background_1_posX{};
+    float background_velocity{20};
 
     // MIDGROUND
     Texture2D midground = LoadTexture("textures/back-buildings.png");
     float midground_1_posX{};
+    float midground_velocity{40};
 
     // FOREGROUND
     Texture2D foreground = LoadTexture("textures/foreground.png");
     float foreground_1_posX{};
+    float foreground_velocity{80};
 
 
     // GAME LOOP START //
@@ -209,7 +220,7 @@ int main(){
 
         // BACKGROUND
 
-        background_1_posX -= 20 * delta_time;                               // Move the background to the left on the X axis 
+        background_1_posX -= background_velocity * delta_time;                               // Move the background to the left on the X axis 
 
         if(background_1_posX <= -background.width * 2){
             background_1_posX = 0.0f;
@@ -224,7 +235,7 @@ int main(){
 
 
         // MIDGROUND
-        midground_1_posX -= 40 * delta_time;
+        midground_1_posX -= midground_velocity * delta_time;
 
         if(midground_1_posX <= -midground.width * 2){
             midground_1_posX = 0.0f;
@@ -236,7 +247,7 @@ int main(){
         DrawTextureEx(midground, midground_2_Position, 0.0f, 2.0, WHITE);
 
         // FOREGROUND
-        foreground_1_posX -= 80 * delta_time;
+        foreground_1_posX -= foreground_velocity * delta_time;
 
         if(foreground_1_posX <= -foreground.width * 2){
             foreground_1_posX = 0.0f;
@@ -282,8 +293,12 @@ int main(){
         {
             enemies_nebula[i].position.x += enemyNebula_Velocity * delta_time;      // Update the nebula enemies position by 250 every frame on the X axis
         }
+        
+        finishLine += enemyNebula_Velocity * delta_time;                            // Update the finish line  
 
         playerAnimation.position.y += player_velocity * delta_time;                 // Update the player's velocity by 10 every frame on the Y axis
+
+        
 
 
 
@@ -309,15 +324,76 @@ int main(){
             enemies_nebula[i] = UpdateAnimation(enemies_nebula[i], delta_time, 7);
         }
 
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Draw the enemy Nebula
-        for(int i=0 ; i<nebula_number; i++)
-        {          
-            DrawTextureRec(nebulaSpritesheet, enemies_nebula[i].spriteRectangle, enemies_nebula[i].position, WHITE);
+        // COLLISION DETECTION
+        // We are going to iterate through all the elements of the nebula array
+        // in order to check each time a nebule object touches the player the bool lean isColliding
+        // will become true and the textures of the player and the obstacles is going to stop being drawed
+        for(SpriteAnimationData2D nebula:enemies_nebula)
+        {
+            
+            // Applying padding to the nebula sprite
+            // The reason that we are applying padding is because the sprite has
+            // some extra space before the enemy is colliding with the player.
+            // So the padding on the sprite should be 20+ one the X axis, 20+ on the Y axis, 
+
+            float enemy_padding{50};
+
+            //Get the coordinates of the enemy rectangle on the screen
+            Rectangle nebula_rectangle{
+                nebula.position.x + enemy_padding,
+                nebula.position.y + enemy_padding,
+                nebula.spriteRectangle.width - 2 * enemy_padding,
+                nebula.spriteRectangle.height - 2 * enemy_padding
+            };
+
+            // Get the coordinates of the player on the screen
+            Rectangle player_rectangle{
+                playerAnimation.position.x,
+                playerAnimation.position.y,
+                playerAnimation.spriteRectangle.width,
+                playerAnimation.spriteRectangle.height
+            };
+
+            if(CheckCollisionRecs(nebula_rectangle, player_rectangle))
+            {
+                isColliding = true;
+            }
+
+            // if(playerAnimation.position.x > nebula.position.x){
+            //     nebula_counter--;
+            //     DrawText(TextFormat("%i", nebula_counter), 50, 50, 50.0, WHITE);
+            // }
+
         }
 
-        // Draw the player on the screen
-        DrawTextureRec(playerSpritesheet, playerAnimation.spriteRectangle, playerAnimation.position, WHITE);
+        if(isColliding)
+        {
+            // GAME OVER
+            DrawText("Game Over!", (window_width/2)-120, window_height/2, 50.0, RED);
+
+            // Stop the background from scrolling
+            background_velocity = 0.0f;
+            midground_velocity = 0.0f;
+            foreground_velocity = 0.0f;
+        }
+        else if(playerAnimation.position.x > finishLine)                                        // Winning Condition
+        {
+            DrawText("You Win!", (window_width/2)-120, window_height/2, 50.0, GOLD);
+        }
+        else
+        {
+            // Draw the enemy Nebula
+            for(int i=0 ; i<nebula_number; i++)
+            {          
+                DrawTextureRec(nebulaSpritesheet, enemies_nebula[i].spriteRectangle, enemies_nebula[i].position, WHITE);
+            }
+
+            // Draw the player on the screen
+            DrawTextureRec(playerSpritesheet, playerAnimation.spriteRectangle, playerAnimation.position, WHITE);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
 
         // Close the frame buffer
         EndDrawing();
