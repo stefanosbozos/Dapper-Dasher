@@ -334,7 +334,7 @@ int main(){
             // Applying padding to the nebula sprite
             // The reason that we are applying padding is because the sprite has
             // some extra space before the enemy is colliding with the player.
-            // So the padding on the sprite should be 20+ one the X axis, 20+ on the Y axis, 
+            // So the padding on the sprite should be 50+ one the X axis, 50+ on the Y axis, 
 
             float enemy_padding{50};
 
